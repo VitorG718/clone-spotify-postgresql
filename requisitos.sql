@@ -131,103 +131,72 @@ select classificacao_de_musicas(true);
 -- -------------------------------------------------------------------------------
 
 -- ----------------------------- STORED PROCEDURES -------------------------------
-create or replace procedure playlists_usuario(apelido_usuario varchar(45))
+create or replace procedure atualiza_seguidores()
 language plpgsql 
 as $$
 begin
-	select 
-		u.apelido as nome_usuario, p.nome as nome_playlist, p.total_de_musicas
-	from 
-		usuario as u
-	inner join 
-		playlist as p on p.fk_id_usuario = u.id_usuario
-	where 
-		u.apelido = apelido_usuario
-	order by 
-		p.total_de_musicas desc;
-	
-	commit;
+   update 
+		playlist as p
+	set 
+		seguidores = 0
+	where
+		p.privacidade = false and tipo_de_playlist = 'U';
 end; $$
 
-select playlists_usuario('VItor');
-
-
-
-create function playlists_usuario(apelido_usuario varchar(45))
-returns void as $$
-begin
-    select 
-		u.apelido as nome_usuario, p.nome as nome_playlist, p.total_de_musicas
-	from 
-		usuario as u
-	inner join 
-		playlist as p on p.fk_id_usuario = u.id_usuario
-	where 
-		u.apelido = apelido_usuario
-	order by 
-		p.total_de_musicas desc;
-end
-$$ language plpgsql;
-
-select playlists_usuario('Gabriel');
+call atualiza_seguidores();
 -- -------------------------------------------------------------------------------
--- douglas
-drop procedure calcula_idade_album;
-create or replace function calcula_idade_album()
-returns text
+create or replace procedure reset_config(in id_usuario integer)
+language plpgsql 
 as $$
-begin 
-	perform (select nome, ano_lancamento 
-    from album
-   	where ano_lancamento > 2000);
-   return 'OK';
-end
-$$ language plpgsql;
-
-select calcula_idade_album();
--- -------------------------------------------------------------------------------
--- gabriel
-use clonespotify;
-delimiter $$
-create procedure listarmusicas()
 begin
-    select nome from musica;
-end $$
-delimiter ;
-call listarmusicas();
+   update 
+		configuracao as c
+	set 
+		(auto_play, qualidade_de_download, qualidade_de_reproducao) = (true, 'Normal', 'Normal')
+	where
+		c.fk_id_usuario = id_usuario;
+end; $$
+
+call reset_config(1);
 -- -------------------------------------------------------------------------------
 
 -- --------------------------------- TRIGGERS ------------------------------------
-delimiter $$
-create trigger atualizatotalmusicasplaylist before insert
-on playlist_has_musica
-for each row
+create or replace function incrementa_qtd_musicas_playlist()
+	returns trigger 
+	language plpgsql
+as $$
 begin
-    update playlist
-    set total_de_musicas = (total_de_musicas + 1)
-    where playlist.idplaylist = new.idplaylist;
-end$$
-delimiter ;
--- douglas
-create trigger playlist_has_musica_after_insert
-after insert 
-on playlist_has_musica
-for each row
-begin
-	update playlist 
-    set seguidores = seguidores + 1
-    where new.idplaylist = idplaylist;
-end;
+	update 
+		playlist as p
+	set 
+		total_de_musicas = total_de_musicas + 1
+	where
+		new.pk_id_playlist = p.id_playlist;
+end $$ 
 
--- gabriel
-delimiter $$
-create trigger iniciarseguidores before insert
-on artista
-for each row
+create trigger tg_incrementa_qtd_musicas_playlist
+    after insert on playlist_has_musica
+    for each row
+    execute procedure incrementa_qtd_musicas_playlist();
+-- -------------------------------------------------------------------------------
+create or replace function decrementa_qtd_musicas_playlist()
+	returns trigger 
+	language plpgsql
+as $$
 begin
-	set new.seguidores = 0;
-end$$
-delimiter ;
+	update 
+		playlist as p
+	set 
+		total_de_musicas = total_de_musicas + 1
+	where
+		new.pk_id_playlist = p.id_playlist;
+end $$ 
+
+create trigger tg_decrementa_qtd_musicas_playlist
+    after insert on playlist_has_musica
+    for each row
+    execute procedure decrementa_qtd_musicas_playlist();
+-- -------------------------------------------------------------------------------
 
 -- 1 commit
 
