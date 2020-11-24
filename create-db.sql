@@ -1,3 +1,5 @@
+create database cloneSpotify;
+
 create type enum_genero as enum('M', 'F');
 create type enum_qualidade_de_download as enum ('Baixa', 'Normal', 'Alto', 'Altissima');
 create type enum_qualidade_de_reproducao as enum ('Baixa', 'Normal', 'Alto', 'Altissima');
