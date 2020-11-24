@@ -199,7 +199,6 @@ create trigger tg_decrementa_qtd_musicas_playlist
 -- -------------------------------------------------------------------------------
 
 -- 1 commit
-<<<<<<< HEAD
 
 begin;
 update usuario
@@ -207,11 +206,19 @@ set apelido = 'Jose'
 where id_usuario = 5;
 commit;
 
+begin;
+delete from public.configuracao where idioma = 'English';
+commit;
+
 -- 1 rollback
 
 begin;
 insert into musica VALUES(7, 'Hype', '00:02:51', true, '');
 rollback;
+
+begin;
+delete from public.configuracao where idioma = 'English';
+rollback ;
 
 -- 3 usuários com privilégios diferentes
 
@@ -227,26 +234,21 @@ grant update, select on musica to gabriel;
 create user vitor;
 grant insert, update, delete on musica, album, playlist to vitor;
 
+-- Gabriel
+
+GRANT SELECT ON public.usuario TO Douglas;
+GRANT SELECT ON public.musica TO Vitor;
+GRANT SELECT ON public.playlist TO Gabriel;
+
 -- 2 revoke com retirada de privilégios diferentes e 1 excluindo todos os privilégios
 revoke insert on clonespotify.public.musica from douglas;
 revoke update, delete on musica from vitor;
 revoke all privileges on all tables in schema public from douglas;
 revoke update  on musica from gabriel;
-=======
-	DELETE FROM public.configuracao WHERE idioma = 'English';
-	COMMIT;
--- 1 rollback
-	DELETE FROM public.configuracao WHERE idioma = 'English';
-	ROLLBACK;
--- 3 usuï¿½rios com privilï¿½gios diferentes
-	CREATE USER Douglas;
-	CREATE USER Vitor;
-	CREATE USER Gabriel;
-	GRANT SELECT ON public.usuario TO Douglas;
-	GRANT SELECT ON public.musica TO Vitor;
-	GRANT SELECT ON public.playlist TO Gabriel;
--- 2 revoke com retirada de privilï¿½gios diferentes e 1 excluindo todos os privilï¿½gios
-	REVOKE SELECT ON public.usuario TO Douglas;
-	REVOKE SELECT ON public.musica TO Vitor;
-	REVOKE PRIVILEGES ON * FROM public;
->>>>>>> 468941cffac413aac22ad9b7be182fcb2a2a2c52
+
+-- Gabriel
+REVOKE SELECT ON public.usuario TO Douglas;
+REVOKE SELECT ON public.musica TO Vitor;
+REVOKE PRIVILEGES ON * FROM public;
+---------------------------------------------------------------------------------------------------------------------
+
