@@ -1,22 +1,33 @@
--- --------------------------- EXCLUS�O DE DATABASE ------------------------------
+-- --------------------------- EXCLUSAO DE DATABASE ------------------------------
+drop database clonespotify;
 -- -------------------------------------------------------------------------------
 
--- ------------------------ ALTERA��O DE NOME DE TABELA --------------------------
+-- ------------------------ ALTERACAO DE NOME DE TABELA --------------------------
+alter table dispositivos_conectados rename to d_conectados;
 -- -------------------------------------------------------------------------------
 
--- ----------------------------- EXCLUS�O DE COLUNA ------------------------------
+-- ----------------------------- EXCLUSAO DE COLUNA ------------------------------
+alter table musica drop column letra;
 -- -------------------------------------------------------------------------------
 
--- ----------------------------- INCLUS�O DE COLUNA ------------------------------
+-- ----------------------------- INCLUSAO DE COLUNA ------------------------------
+alter table album add column descricao;
 -- -------------------------------------------------------------------------------
 
--- ---------------------- ALTERA��O DE DADOS DE UMA TABELA -----------------------
+-- ---------------------- ALTERACAO DE DADOS DE UMA TABELA -----------------------
+update playlist
+set tipo_de_playlist = 'S'
+where id_playlist = 6;
 -- -------------------------------------------------------------------------------
 
--- ----------------------- EXCLUS�O DE DADOS DE UMA TABELA -----------------------
+-- ----------------------- EXCLUSAO DE DADOS DE UMA TABELA -----------------------
+delete from dispositivos_conectados
+where id_dispositivos_conectados in(select id_dispositivos_conectados
+                                    from dispositivos_conectados
+                                    where nome = 'DESKTOP-OSI17L3');
 -- -------------------------------------------------------------------------------
 
--- ------------------------- SELECT COM FUN��O DE DATA --------------------------
+-- ------------------------- SELECT COM FUNCAO DE DATA --------------------------
 select 
 	u.apelido, extract(year from age(now(), u.data_nascimento)) as idade, p.nome as nome_playlist
 from 
