@@ -200,8 +200,34 @@ create trigger tg_decrementa_qtd_musicas_playlist
 
 -- 1 commit
 
+begin;
+update usuario
+set apelido = 'Jose'
+where id_usuario = 5;
+commit;
+
 -- 1 rollback
+
+begin;
+insert into musica VALUES(7, 'Hype', '00:02:51', true, '');
+rollback;
 
 -- 3 usuários com privilégios diferentes
 
+-- User 1
+create user douglas;
+grant all privileges on all tables in schema public to douglas;
+
+-- User 2
+create user gabriel;
+grant update, select on musica to gabriel;
+
+-- User 3
+create user vitor;
+grant insert, update, delete on musica, album, playlist to vitor;
+
 -- 2 revoke com retirada de privilégios diferentes e 1 excluindo todos os privilégios
+revoke insert on clonespotify.public.musica from douglas;
+revoke update, delete on musica from vitor;
+revoke all privileges on all tables in schema public from douglas;
+revoke update  on musica from gabriel;
