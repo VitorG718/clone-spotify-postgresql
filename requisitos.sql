@@ -1,22 +1,22 @@
--- --------------------------- EXCLUSÃO DE DATABASE ------------------------------
+-- --------------------------- EXCLUSï¿½O DE DATABASE ------------------------------
 -- -------------------------------------------------------------------------------
 
--- ------------------------ ALTERAÇÃO DE NOME DE TABELA --------------------------
+-- ------------------------ ALTERAï¿½ï¿½O DE NOME DE TABELA --------------------------
 -- -------------------------------------------------------------------------------
 
--- ----------------------------- EXCLUSÃO DE COLUNA ------------------------------
+-- ----------------------------- EXCLUSï¿½O DE COLUNA ------------------------------
 -- -------------------------------------------------------------------------------
 
--- ----------------------------- INCLUSÃO DE COLUNA ------------------------------
+-- ----------------------------- INCLUSï¿½O DE COLUNA ------------------------------
 -- -------------------------------------------------------------------------------
 
--- ---------------------- ALTERAÇÃO DE DADOS DE UMA TABELA -----------------------
+-- ---------------------- ALTERAï¿½ï¿½O DE DADOS DE UMA TABELA -----------------------
 -- -------------------------------------------------------------------------------
 
--- ----------------------- EXCLUSÃO DE DADOS DE UMA TABELA -----------------------
+-- ----------------------- EXCLUSï¿½O DE DADOS DE UMA TABELA -----------------------
 -- -------------------------------------------------------------------------------
 
--- ------------------------- SELECT COM FUNÇÃO DE DATA --------------------------
+-- ------------------------- SELECT COM FUNï¿½ï¿½O DE DATA --------------------------
 select 
 	u.apelido, extract(year from age(now(), u.data_nascimento)) as idade, p.nome as nome_playlist
 from 
@@ -34,7 +34,7 @@ create or replace view musicas_nao_explicitas as
      select
           m.nome as nome_musica,
           case
-               when m.explicita = false then 'Não'
+               when m.explicita = false then 'Nï¿½o'
                when m.explicita = true then 'Sim'
           end as explicita
      from
@@ -62,7 +62,7 @@ create or replace view verificados as
 	select 
 		a.nome as artistas,
 		case 
-			when a.verificado = false then 'Não'
+			when a.verificado = false then 'Nï¿½o'
 			when a.verificado = true then 'Sim'
 		end as verificados
 	from 
@@ -85,9 +85,9 @@ begin
     where id_playlist = id_playlist_selecionada;
     return 
 		case tipo_playlist_selecionada
-			when 'U' then 'Usuário'
+			when 'U' then 'Usuï¿½rio'
             when 'S' then 'Sistema'
-            when 'R' then 'Rádio'
+            when 'R' then 'Rï¿½dio'
 		end;
 end;
 $$ language plpgsql;
@@ -199,9 +199,19 @@ create trigger tg_decrementa_qtd_musicas_playlist
 -- -------------------------------------------------------------------------------
 
 -- 1 commit
-
+	DELETE FROM public.configuracao WHERE idioma = 'English';
+	COMMIT;
 -- 1 rollback
-
--- 3 usuários com privilégios diferentes
-
--- 2 revoke com retirada de privilégios diferentes e 1 excluindo todos os privilégios
+	DELETE FROM public.configuracao WHERE idioma = 'English';
+	ROLLBACK;
+-- 3 usuï¿½rios com privilï¿½gios diferentes
+	CREATE USER Douglas;
+	CREATE USER Vitor;
+	CREATE USER Gabriel;
+	GRANT SELECT ON public.usuario TO Douglas;
+	GRANT SELECT ON public.musica TO Vitor;
+	GRANT SELECT ON public.playlist TO Gabriel;
+-- 2 revoke com retirada de privilï¿½gios diferentes e 1 excluindo todos os privilï¿½gios
+	REVOKE SELECT ON public.usuario TO Douglas;
+	REVOKE SELECT ON public.musica TO Vitor;
+	REVOKE PRIVILEGES ON * FROM public;
