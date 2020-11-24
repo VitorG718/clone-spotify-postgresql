@@ -1,41 +1,58 @@
--- --------------------------- EXCLUSAO DE DATABASE ------------------------------
+-- --------------------------- EXCLUSÃO DE DATABASE ------------------------------
 drop database clonespotify;
 -- -------------------------------------------------------------------------------
 
--- ------------------------ ALTERACAO DE NOME DE TABELA --------------------------
+-- ------------------------ ALTERAÇÃO DE NOME DE TABELA --------------------------
 alter table dispositivos_conectados rename to d_conectados;
+
+alter table d_conectados rename to dispositivos_conectados;
 -- -------------------------------------------------------------------------------
 
--- ----------------------------- EXCLUSAO DE COLUNA ------------------------------
+-- ----------------------------- EXCLUSÃO DE COLUNA ------------------------------
 alter table musica drop column letra;
 -- -------------------------------------------------------------------------------
 
--- ----------------------------- INCLUSAO DE COLUNA ------------------------------
-alter table album add column descricao;
+-- ----------------------------- INCLUSÃO DE COLUNA ------------------------------
+alter table album add column descricao varchar(255);
 -- -------------------------------------------------------------------------------
 
--- ---------------------- ALTERACAO DE DADOS DE UMA TABELA -----------------------
-update playlist
-set tipo_de_playlist = 'S'
-where id_playlist = 6;
+-- ---------------------- ALTERAÇÃO DE DADOS DE UMA TABELA -----------------------
+update
+	playlist
+set
+	tipo_de_playlist = 'S'
+where
+	id_playlist = 6;
 -- -------------------------------------------------------------------------------
 
--- ----------------------- EXCLUSAO DE DADOS DE UMA TABELA -----------------------
-delete from dispositivos_conectados
-where id_dispositivos_conectados in(select id_dispositivos_conectados
-                                    from dispositivos_conectados
-                                    where nome = 'DESKTOP-OSI17L3');
+-- ----------------------- EXCLUSÃO DE DADOS DE UMA TABELA -----------------------
+delete
+from
+	dispositivos_conectados
+where
+	id_dispositivos_conectados in
+	(
+		select
+			id_dispositivos_conectados
+		from
+			dispositivos_conectados
+		where
+			nome = 'DESKTOP-OSI17L3'
+	);
 -- -------------------------------------------------------------------------------
 
--- ------------------------- SELECT COM FUNCAO DE DATA --------------------------
+-- ------------------------- SELECT COM FUNÇÂO DE DATA --------------------------
 select 
-	u.apelido, extract(year from age(now(), u.data_nascimento)) as idade, p.nome as nome_playlist
+	u.apelido, 
+	extract(year from age(now(), u.data_nascimento)) as idade, 
+	p.nome as nome_playlist
 from 
 	playlist as p
 inner join 
 	usuario as u on p.fk_id_usuario = u.id_usuario
 where 
-	(u.genero = 'F' and p.tipo_de_playlist = 'U') and (extract(year from age(now(), u.data_nascimento)) < 18) 
+	(u.genero = 'F' and p.tipo_de_playlist = 'U') and 
+	(extract(year from age(now(), u.data_nascimento)) < 18) 
 order by u.apelido;
 -- -------------------------------------------------------------------------------
 
@@ -45,7 +62,7 @@ create or replace view musicas_nao_explicitas as
      select
           m.nome as nome_musica,
           case
-               when m.explicita = false then 'Nï¿½o'
+               when m.explicita = false then 'Não'
                when m.explicita = true then 'Sim'
           end as explicita
      from
@@ -73,7 +90,7 @@ create or replace view verificados as
 	select 
 		a.nome as artistas,
 		case 
-			when a.verificado = false then 'Nï¿½o'
+			when a.verificado = false then 'Não'
 			when a.verificado = true then 'Sim'
 		end as verificados
 	from 
@@ -87,55 +104,59 @@ select * from verificados;
 
 -- --------------------------------- FUNCTIONS -----------------------------------
 create function tipo_playlist(id_playlist_selecionada integer)
-returns varchar(1) as $$
-declare tipo_playlist_selecionada char(1);
-begin
-	select tipo_de_playlist
-	into tipo_playlist_selecionada
-    from playlist
-    where id_playlist = id_playlist_selecionada;
-    return 
-		case tipo_playlist_selecionada
-			when 'U' then 'Usuï¿½rio'
-            when 'S' then 'Sistema'
-            when 'R' then 'Rï¿½dio'
-		end;
-end;
+	returns varchar(1) 
+as $$
+	declare tipo_playlist_selecionada char(1);
+	begin
+		select tipo_de_playlist
+		into tipo_playlist_selecionada
+	    from playlist
+	    where id_playlist = id_playlist_selecionada;
+	    return 
+			case tipo_playlist_selecionada
+				when 'U' then 'Usuário'
+	            when 'S' then 'Sistema'
+	            when 'R' then 'Rádio'
+			end;
+	end
 $$ language plpgsql;
 
 select nome, tipo_playlist(id_playlist) from playlist;
 -- -------------------------------------------------------------------------------
 create function classificacao_artista(ouvintes_mensais integer)
-returns varchar(45) as $$
-declare classificacao varchar(45);
-begin        
-    if ouvintes_mensais > 1000 and ouvintes_mensais <= 50000 
-    	then classificacao = 'Iniciante';
-    elseif ouvintes_mensais > 50000 and ouvintes_mensais <= 500000 
-   		then classificacao = 'Intermediario';
-    elseif ouvintes_mensais > 500000 and ouvintes_mensais <= 1000000 
-   		then classificacao = 'Famoso';
-    elseif ouvintes_mensais > 1000000 
-    	then classificacao = 'Muito Famoso';
-    end if;
-   
-    return classificacao;
-end $$  language plpgsql;
+	returns varchar(45) 
+as $$
+	declare classificacao varchar(45);
+	begin        
+	    if ouvintes_mensais > 1000 and ouvintes_mensais <= 50000 
+	    	then classificacao = 'Iniciante';
+	    elseif ouvintes_mensais > 50000 and ouvintes_mensais <= 500000 
+	   		then classificacao = 'Intermediário';
+	    elseif ouvintes_mensais > 500000 and ouvintes_mensais <= 1000000 
+	   		then classificacao = 'Famoso';
+	    elseif ouvintes_mensais > 1000000 
+	    	then classificacao = 'Muito Famoso';
+	    end if;
+	   
+	    return classificacao;
+	end 
+$$  language plpgsql;
 
 select classificacao_artista(500000);
 -- -------------------------------------------------------------------------------
 create function classificacao_de_musicas(classificacao_musica_selecionada boolean)
-returns varchar(40) as $$
-declare explicit varchar(40);
-begin
-    if classificacao_musica_selecionada = true 
-   		then explicit = 'Explicito';
-	elseif classificacao_musica_selecionada = false 
-		then explicit = 'Livre';
-	end if;
-
-    return explicit;
-end
+	returns varchar(40) 
+as $$
+	declare explicit varchar(40);
+	begin
+	    if classificacao_musica_selecionada = true 
+	   		then explicit = 'Explicito';
+		elseif classificacao_musica_selecionada = false 
+			then explicit = 'Livre';
+		end if;
+	
+	    return explicit;
+	end
 $$ language plpgsql;
 
 select classificacao_de_musicas(true);
@@ -143,7 +164,7 @@ select classificacao_de_musicas(true);
 
 -- ----------------------------- STORED PROCEDURES -------------------------------
 create or replace procedure atualiza_seguidores()
-language plpgsql 
+	language plpgsql 
 as $$
 begin
    update 
@@ -157,7 +178,7 @@ end; $$
 call atualiza_seguidores();
 -- -------------------------------------------------------------------------------
 create or replace procedure reset_config(in id_usuario integer)
-language plpgsql 
+	language plpgsql 
 as $$
 begin
    update 
@@ -209,57 +230,55 @@ create trigger tg_decrementa_qtd_musicas_playlist
     execute procedure decrementa_qtd_musicas_playlist();
 -- -------------------------------------------------------------------------------
 
--- 1 commit
-
+-- ---------------------------------- COMMIT -------------------------------------
 begin;
-update usuario
-set apelido = 'Jose'
-where id_usuario = 5;
+	update usuario
+	set apelido = 'Jose'
+	where id_usuario = 5;
 commit;
 
 begin;
-delete from public.configuracao where idioma = 'English';
+	delete from configuracao where idioma = 'English';
 commit;
+-- -------------------------------------------------------------------------------
 
--- 1 rollback
-
+-- --------------------------------- ROLLBACK ------------------------------------
 begin;
-insert into musica VALUES(7, 'Hype', '00:02:51', true, '');
+	insert into musica values(7, 'Hype', '00:02:51', true);
 rollback;
 
 begin;
-delete from public.configuracao where idioma = 'English';
-rollback ;
+	delete from configuracao where idioma = 'English';
+rollback;
+-- -------------------------------------------------------------------------------
 
--- 3 usuários com privilégios diferentes
-
--- User 1
+-- ---------------- 3 USUÁRIOS COM PRIVILÉGIOS DIFERENTES ------------------------
+-- USER 1
 create user douglas;
 grant all privileges on all tables in schema public to douglas;
 
--- User 2
+-- USER 2
 create user gabriel;
 grant update, select on musica to gabriel;
 
--- User 3
+-- USER 3
 create user vitor;
 grant insert, update, delete on musica, album, playlist to vitor;
 
--- Gabriel
+grant select on usuario to Douglas;
+grant select on musica to Vitor;
+grant select on playlist to Gabriel;
+-- -------------------------------------------------------------------------------
 
-GRANT SELECT ON public.usuario TO Douglas;
-GRANT SELECT ON public.musica TO Vitor;
-GRANT SELECT ON public.playlist TO Gabriel;
-
--- 2 revoke com retirada de privilégios diferentes e 1 excluindo todos os privilégios
+-- ------------- 2 REVOKE COM RETIRADA DE PRIVILÉGIOS DIFERENTES E ---------------
+-- --------------------- 1 EXCLUINDO TODOS OS PRIVILÉGIOS ------------------------
 revoke insert on clonespotify.public.musica from douglas;
 revoke update, delete on musica from vitor;
+revoke update on musica from gabriel;
 revoke all privileges on all tables in schema public from douglas;
-revoke update  on musica from gabriel;
 
--- Gabriel
-REVOKE SELECT ON public.usuario TO Douglas;
-REVOKE SELECT ON public.musica TO Vitor;
-REVOKE PRIVILEGES ON * FROM public;
----------------------------------------------------------------------------------------------------------------------
+revoke select on public.usuario to Douglas;
+revoke select on public.musica to Vitor;
+revoke privileges on * from public;
+-- -------------------------------------------------------------------------------
 
